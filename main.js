@@ -1,7 +1,8 @@
-// main.js (module)
-const {
-  createWorker
-} = Tesseract;
+// main.js
+(async function() {
+  const {
+    createWorker
+  } = Tesseract;
 
 const fileInput = document.getElementById('fileInput');
 const dropZone = document.getElementById('dropZone');
@@ -135,7 +136,6 @@ startOcrBtn.addEventListener('click', async () => {
 
   if (!worker) {
     worker = createWorker({
-      // optional: set logger here; we also attach progress below
       logger: m => {
         // m = {status, progress}
         if (m && typeof m.progress === 'number') {
@@ -148,17 +148,22 @@ startOcrBtn.addEventListener('click', async () => {
       }
     });
     await worker.load();
+    await worker.loadLanguage(lang);
+    await worker.initialize(lang);
+  } else {
+    // If worker exists but we need a different language, reinitialize
+    const currentLang = worker._currentLanguage || '';
+    if (currentLang !== lang) {
+      statusEl.textContent = 'Reinizializzazione lingua...';
+      await worker.loadLanguage(lang);
+      await worker.initialize(lang);
+    }
   }
 
   try {
-    statusEl.textContent = 'Caricamento lingua...';
-    await worker.loadLanguage(lang);
-    await worker.initialize(lang);
-    // optionally set parameters
-    await worker.setParameters({
-      tessjs_create_hocr: '1',
-      tessjs_create_tsv: '1'
-    });
+    statusEl.textContent = 'Preparazione per OCR...';
+    // Store current language for future reference
+    worker._currentLanguage = lang;
 
     statusEl.textContent = 'Esecuzione OCR...';
     const canvas = document.createElement('canvas');
@@ -373,3 +378,5 @@ document.querySelector('.file-btn[for]')?.addEventListener('click', ()=>{});
 // log initial
 log('OCR client-side inizializzato');
 statusEl.textContent = 'Pronto';
+
+})(); // End of async IIFE
