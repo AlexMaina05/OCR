@@ -1,5 +1,17 @@
 // main.js
 (async function() {
+  // Wait for Tesseract to be available with timeout
+  const maxWaitTime = 10000; // 10 seconds
+  const startTime = Date.now();
+  while (typeof Tesseract === 'undefined') {
+    if (Date.now() - startTime > maxWaitTime) {
+      console.error('Tesseract failed to load within timeout period');
+      alert('Errore: Tesseract.js non è stato caricato. Ricarica la pagina.');
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
   const {
     createWorker
   } = Tesseract;
@@ -34,6 +46,25 @@ function log(...args) {
   console.log(msg);
   logArea.textContent += msg + '\n';
   logArea.scrollTop = logArea.scrollHeight;
+}
+
+// Helper function to create worker configuration
+function getWorkerConfig() {
+  return {
+    workerPath: 'node_modules/tesseract.js/dist/worker.min.js',
+    corePath: 'node_modules/tesseract.js-core/tesseract-core.wasm.js',
+    langPath: 'tessdata',
+    logger: m => {
+      // m = {status, progress}
+      if (m && typeof m.progress === 'number') {
+        progressEl.value = m.progress;
+      }
+      if (m && m.status) {
+        statusEl.textContent = m.status;
+      }
+      log('worker:', JSON.stringify(m));
+    }
+  };
 }
 
 // restore saved language
@@ -135,28 +166,14 @@ startOcrBtn.addEventListener('click', async () => {
   }
 
   if (!worker) {
-    worker = createWorker({
-      logger: m => {
-        // m = {status, progress}
-        if (m && typeof m.progress === 'number') {
-          progressEl.value = m.progress;
-        }
-        if (m && m.status) {
-          statusEl.textContent = m.status;
-        }
-        log('worker:', JSON.stringify(m));
-      }
-    });
-    await worker.load();
-    await worker.loadLanguage(lang);
-    await worker.initialize(lang);
+    worker = await createWorker(lang, 1, getWorkerConfig());
   } else {
     // If worker exists but we need a different language, reinitialize
     const currentLang = worker._currentLanguage || '';
     if (currentLang !== lang) {
       statusEl.textContent = 'Reinizializzazione lingua...';
-      await worker.loadLanguage(lang);
-      await worker.initialize(lang);
+      await worker.terminate();
+      worker = await createWorker(lang, 1, getWorkerConfig());
     }
   }
 
