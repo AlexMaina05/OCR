@@ -1,0 +1,15 @@
+{
+  "name": "ocr",
+  "version": "1.0.0",
+  "description": "Sito statico che esegue OCR (estrazione testo) interamente nel browser usando Tesseract.js (WASM). Supporta: - Upload immagini (file chooser + drag & drop) - Acquisizione da camera (getUserMedia) e cattura frame - Selezione lingua (eng, ita, spa, fra) - Progress bar e log - Visualizzazione bounding boxes delle parole - Copia e download del testo estratto",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tesseract.js": "^6.0.1"
+  }
+}

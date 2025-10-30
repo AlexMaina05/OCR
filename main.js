@@ -1,5 +1,10 @@
 // main.js
 (async function() {
+  // Wait for Tesseract to be available
+  while (typeof Tesseract === 'undefined') {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
   const {
     createWorker
   } = Tesseract;
@@ -135,7 +140,10 @@ startOcrBtn.addEventListener('click', async () => {
   }
 
   if (!worker) {
-    worker = createWorker({
+    worker = await createWorker(lang, 1, {
+      workerPath: 'node_modules/tesseract.js/dist/worker.min.js',
+      corePath: 'node_modules/tesseract.js-core/tesseract-core.wasm.js',
+      langPath: 'tessdata',
       logger: m => {
         // m = {status, progress}
         if (m && typeof m.progress === 'number') {
@@ -147,16 +155,26 @@ startOcrBtn.addEventListener('click', async () => {
         log('worker:', JSON.stringify(m));
       }
     });
-    await worker.load();
-    await worker.loadLanguage(lang);
-    await worker.initialize(lang);
   } else {
     // If worker exists but we need a different language, reinitialize
     const currentLang = worker._currentLanguage || '';
     if (currentLang !== lang) {
       statusEl.textContent = 'Reinizializzazione lingua...';
-      await worker.loadLanguage(lang);
-      await worker.initialize(lang);
+      await worker.terminate();
+      worker = await createWorker(lang, 1, {
+        workerPath: 'node_modules/tesseract.js/dist/worker.min.js',
+        corePath: 'node_modules/tesseract.js-core/tesseract-core.wasm.js',
+        langPath: 'tessdata',
+        logger: m => {
+          if (m && typeof m.progress === 'number') {
+            progressEl.value = m.progress;
+          }
+          if (m && m.status) {
+            statusEl.textContent = m.status;
+          }
+          log('worker:', JSON.stringify(m));
+        }
+      });
     }
   }
 

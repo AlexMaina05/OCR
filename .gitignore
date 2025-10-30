@@ -19,3 +19,6 @@ build/
 # Temporary files
 tmp/
 *.tmp
+
+# Tesseract language data (should be downloaded separately)
+tessdata/
