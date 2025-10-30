@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OCR Client-side — Estrazione testo da immagini</title>
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="description" content="OCR client-side con Tesseract.js: upload immagine, camera capture, progress e bounding boxes." />
+</head>
+<body>
+  <header class="site-header">
+    <h1>OCR Client-side</h1>
+    <p class="tagline">Estrai testo da immagini direttamente nel browser (Tesseract.js, WASM). Nessun server richiesto.</p>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <div class="row">
+        <label class="file-btn">
+          Seleziona immagine
+          <input id="fileInput" type="file" accept="image/*" />
+        </label>
+
+        <button id="startCameraBtn" class="btn">Apri Camera</button>
+        <button id="captureBtn" class="btn hidden">Cattura</button>
+        <button id="stopCameraBtn" class="btn hidden danger">Chiudi Camera</button>
+
+        <select id="langSelect" class="select">
+          <option value="eng">English (eng)</option>
+          <option value="ita">Italiano (ita)</option>
+          <option value="spa">Español (spa)</option>
+          <option value="fra">Français (fra)</option>
+        </select>
+
+        <button id="startOcrBtn" class="btn primary" disabled>Avvia OCR</button>
+
+        <label class="file-btn small">
+          Drop zone attiva
+          <input id="dropInput" type="file" accept="image/*" style="display:none"/>
+        </label>
+      </div>
+
+      <div id="dropZone" class="dropzone">
+        Trascina qui un'immagine oppure usa "Seleziona immagine"
+      </div>
+
+      <div class="row">
+        <progress id="progress" value="0" max="1" class="progress"></progress>
+        <div id="status" class="status">In attesa</div>
+      </div>
+    </section>
+
+    <section class="preview-area">
+      <div class="preview-column">
+        <div class="image-wrap">
+          <canvas id="imageCanvas"></canvas>
+          <canvas id="overlayCanvas" class="overlay"></canvas>
+          <video id="video" autoplay playsinline class="hidden"></video>
+        </div>
+        <div class="row small">
+          <button id="clearBtn" class="btn">Pulisci</button>
+          <button id="downloadImageBtn" class="btn" disabled>Scarica immagine</button>
+        </div>
+      </div>
+
+      <div class="result-column">
+        <h2>Testo riconosciuto</h2>
+        <textarea id="resultText" class="result" placeholder="Il testo estratto apparirà qui..." rows="12"></textarea>
+        <div class="row small">
+          <button id="copyBtn" class="btn" disabled>Copia</button>
+          <button id="downloadBtn" class="btn" disabled>Scarica .txt</button>
+        </div>
+
+        <details>
+          <summary>Opzioni avanzate</summary>
+          <div class="advanced">
+            <label><input id="drawBoxes" type="checkbox" checked /> Mostra bounding boxes</label>
+            <label><input id="saveLang" type="checkbox" /> Ricorda lingua (localStorage)</label>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="log">
+      <h3>Log / Debug</h3>
+      <pre id="logArea" class="log-area"></pre>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>Progetto client-side con <a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">Tesseract.js</a>. Testato su Chrome/Firefox. © OCR Client-side</small>
+  </footer>
+
+  <!-- Tesseract.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
